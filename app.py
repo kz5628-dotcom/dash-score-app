@@ -13,11 +13,9 @@ st.markdown("""
 
     /* ============================================================
        右側のボタンエリアのデザイン
-       構造: 右カラム -> (Playボタン) -> (入れ子のカラム[Yes/No])
        ============================================================ */
     
     /* 1. 再生ボタン（上段・青） */
-    /* 右カラムの「一番上にあるボタン」を狙い撃ちします */
     div[data-testid="column"]:nth-of-type(2) > div > div > div > div > div.stButton > button {
         background-color: #0068c9 !important;
         color: white !important;
@@ -26,25 +24,19 @@ st.markdown("""
         font-size: 22px !important;
         font-weight: bold;
         width: 100%;
-        margin-bottom: 300px !important; /* ★ここを300px空けました */
+        margin-bottom: 300px !important; /* ボタン間の間隔300px */
     }
     div[data-testid="column"]:nth-of-type(2) > div > div > div > div > div.stButton > button:hover {
         background-color: #0052a3 !important;
     }
 
-    /* ------------------------------------------------------------
-       ここから下の「はい」「いいえ」は、
-       右カラムの中にある「入れ子の横並びカラム」の中にあります。
-       ------------------------------------------------------------ */
-
     /* 2. はいボタン（下段左・水色・超巨大） */
-    /* 「右カラム」の中の「横並びブロック」の中の「1番目のカラム(左)」のボタン */
     div[data-testid="column"]:nth-of-type(2) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(1) button {
-        background-color: #00b4d8 !important; /* ★強制適用 */
+        background-color: #00b4d8 !important;
         color: white !important;
         border: none;
-        height: 300px !important; /* ★高さ300px */
-        font-size: 40px !important; /* ★文字もさらに大きく */
+        height: 300px !important; /* 高さ300px */
+        font-size: 40px !important;
         font-weight: bold;
         width: 100%;
     }
@@ -53,13 +45,12 @@ st.markdown("""
     }
 
     /* 3. いいえボタン（下段右・赤・超巨大） */
-    /* 「右カラム」の中の「横並びブロック」の中の「2番目のカラム(右)」のボタン */
     div[data-testid="column"]:nth-of-type(2) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(2) button {
-        background-color: #ff6b6b !important; /* ★強制適用 */
+        background-color: #ff6b6b !important;
         color: white !important;
         border: none;
-        height: 300px !important; /* ★高さ300px */
-        font-size: 40px !important; /* ★文字もさらに大きく */
+        height: 300px !important; /* 高さ300px */
+        font-size: 40px !important;
         font-weight: bold;
         width: 100%;
     }
@@ -80,7 +71,7 @@ EXTRA_TIME = 4.0
 # --- 画像の設定 ---
 TALKING_GIF = "talking_loop.gif"
 SILENT_PNG = "silent_face.png"
-IMG_WIDTH = 450  # 画像サイズ450
+IMG_WIDTH = 450 
 
 # --- 音声ファイルと質問文のリスト ---
 START_DATA = {"file": "audio/00_start.mp3", "duration": 8.0}
@@ -124,9 +115,8 @@ questions = [
 #  アプリ本体の処理
 # ==========================================
 
-# セッションステート初期化
 if 'q_index' not in st.session_state:
-    st.session_state.q_index = 0  # 0:挨拶, 1~30:質問, 31:終了
+    st.session_state.q_index = 0 
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'last_played_idx' not in st.session_state:
@@ -134,12 +124,11 @@ if 'last_played_idx' not in st.session_state:
 
 st.title("DASHスコア問診アプリ")
 
-# --- 1. 挨拶ページ（スタート画面） ---
+# --- 1. 挨拶ページ ---
 if st.session_state.q_index == 0:
     st.subheader("ご案内")
     st.write("▼ 看護師がご案内します")
 
-    # 左右分割（画像エリア広め、ボタンエリア狭め）
     c_img, c_btn = st.columns([1.5, 1], vertical_alignment="center")
     
     with c_img:
@@ -147,33 +136,27 @@ if st.session_state.q_index == 0:
         image_spot.image(SILENT_PNG, width=IMG_WIDTH)
     
     with c_btn:
-        # 上段：問診開始ボタン（青・大）
         if st.button("▶ 問診を開始する", type="primary"):
             audio_box = st.empty()
             image_spot.image(TALKING_GIF, width=IMG_WIDTH)
             
-            trick_time = (time.time() % 0.1) * 0.1
-            audio_box.audio(START_DATA['file'], autoplay=True, start_time=trick_time)
+            # ★変更点: 現在時刻を使って「key」を毎回新品にする
+            unique_key = f"start_{time.time()}"
+            audio_box.audio(START_DATA['file'], autoplay=True, key=unique_key)
             
             with st.spinner("挨拶中..."):
                 time.sleep(START_DATA['duration'] + EXTRA_TIME) 
-            
-            # 再生終了後の処理
             image_spot.image(SILENT_PNG, width=IMG_WIDTH)
-            
-            # 自動ページ送り
-            time.sleep(1.0) # 1秒待つ
+            time.sleep(1.0) 
             st.session_state.q_index = 1
-            st.rerun() # 強制的に次のページへリロード
+            st.rerun() 
     
     st.write("---")
 
-# --- 2. 終了ページ（全問終了後） ---
+# --- 2. 終了ページ ---
 elif st.session_state.q_index > len(questions):
     st.subheader("診断終了")
-    
     c_img, c_btn = st.columns([1.5, 1], vertical_alignment="center")
-
     with c_img:
         image_spot = st.empty()
         image_spot.image(SILENT_PNG, width=IMG_WIDTH)
@@ -182,43 +165,39 @@ elif st.session_state.q_index > len(questions):
     if st.session_state.last_played_idx != st.session_state.q_index:
         with st.spinner("（1秒後に終了の挨拶が始まります...）"):
             time.sleep(1.0)
-        
         image_spot.image(TALKING_GIF, width=IMG_WIDTH)
-        audio_box.audio(END_DATA['file'], autoplay=True, start_time=0)
+        
+        # 自動再生
+        audio_box.audio(END_DATA['file'], autoplay=True, key="end_auto")
         
         with st.spinner("お話中..."):
             time.sleep(END_DATA['duration'] + EXTRA_TIME)
-        
         image_spot.image(SILENT_PNG, width=IMG_WIDTH)
         st.session_state.last_played_idx = st.session_state.q_index
 
     with c_btn:
-        # 上段：もう一度聞くボタン
         if st.button("▶ もう一度挨拶を聞く", type="primary"):
             image_spot.image(TALKING_GIF, width=IMG_WIDTH)
             
-            trick_time = (time.time() % 0.1) * 0.1
-            audio_box.audio(END_DATA['file'], autoplay=True, start_time=trick_time)
+            # ★変更点: keyを毎回変える
+            unique_key = f"end_retry_{time.time()}"
+            audio_box.audio(END_DATA['file'], autoplay=True, key=unique_key)
             
             with st.spinner("お話中..."):
                 time.sleep(END_DATA['duration'] + EXTRA_TIME)
-            
             image_spot.image(SILENT_PNG, width=IMG_WIDTH)
         
     st.success(f"お疲れ様でした！すべての回答が終わりました。\n\n**あなたのDASHスコア換算値：{st.session_state.score}**")
     st.write("---")
-
     if st.button("最初に戻る"):
         st.session_state.q_index = 0
         st.session_state.score = 0
         st.rerun()
 
-# --- 3. 質問ページ（問診本番） ---
+# --- 3. 質問ページ ---
 else:
     q_data = questions[st.session_state.q_index - 1]
-    
     st.subheader(f"Q{st.session_state.q_index}. {q_data['text']}")
-    
     c_img, c_btn = st.columns([1.5, 1], vertical_alignment="center")
 
     with c_img:
@@ -227,30 +206,24 @@ else:
         audio_box = st.empty()
 
     with c_btn:
-        # --- 上段：再生ボタン ---
         if st.button("▶ もう一度質問を聞く", type="primary", key=f"replay_btn_{st.session_state.q_index}"):
             image_spot.image(TALKING_GIF, width=IMG_WIDTH)
             
-            trick_time = (time.time() % 0.1) * 0.1
-            audio_box.audio(q_data['file'], autoplay=True, start_time=trick_time)
+            # ★変更点: keyを毎回変える（これでWebでも動きます！）
+            unique_key = f"q_{st.session_state.q_index}_{time.time()}"
+            audio_box.audio(q_data['file'], autoplay=True, key=unique_key)
             
             with st.spinner("読み上げ中..."):
                 time.sleep(q_data['duration'] + EXTRA_TIME)
-            
             image_spot.image(SILENT_PNG, width=IMG_WIDTH)
 
-        # --- 下段：回答ボタン（2列に分割） ---
         sub_c1, sub_c2 = st.columns(2)
-        
         with sub_c1:
-            # 左：はいボタン（水色）
             if st.button("はい", use_container_width=True):
                 st.session_state.score += 5
                 st.session_state.q_index += 1
                 st.rerun()
-        
         with sub_c2:
-            # 右：いいえボタン（赤）
             if st.button("いいえ", use_container_width=True):
                 st.session_state.score += 0
                 st.session_state.q_index += 1
@@ -258,17 +231,15 @@ else:
 
     st.write("---")
 
-    # ================================
-    #  自動再生ロジック
-    # ================================
     if st.session_state.last_played_idx != st.session_state.q_index:
         time.sleep(1.0)
-        
         image_spot.image(TALKING_GIF, width=IMG_WIDTH)
-        audio_box.audio(q_data['file'], autoplay=True, start_time=0)
+        
+        # 自動再生
+        unique_key = f"auto_q_{st.session_state.q_index}"
+        audio_box.audio(q_data['file'], autoplay=True, key=unique_key)
         
         with st.spinner("読み上げ中..."):
             time.sleep(q_data['duration'] + EXTRA_TIME)
-        
         image_spot.image(SILENT_PNG, width=IMG_WIDTH)
         st.session_state.last_played_idx = st.session_state.q_index
